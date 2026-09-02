@@ -3,7 +3,7 @@ import cv2
 import numpy as np
 import sqlite3
 import os
-from face_detector import SmartFaceDetector
+from src.face_detector import SmartFaceDetector
 
 app = FastAPI(title="Smart Attendance API")
 detector = SmartFaceDetector()
