@@ -5,7 +5,7 @@ import os
 class SmartFaceDetector:
     def __init__(self):
         self.recognizer = cv2.face.LBPHFaceRecognizer_create()
-        self.face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
+        self.face_cascade = cv2.CascadeClassifier('models/haarcascade_frontalface_default.xml')
         
     def train_model(self, data_dir='data/raw_student_faces/'):
         faces = []
