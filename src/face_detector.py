@@ -52,3 +52,4 @@ class SmartFaceDetector:
 
 if __name__ == "__main__":
     detector = SmartFaceDetector()
+    detector.train_model()
