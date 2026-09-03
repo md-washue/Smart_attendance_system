@@ -9,7 +9,7 @@ export default function App() {
   const [status, setStatus] = useState("Ready to scan");
 
   // I have to change this (if the server fails or url does not work)
-  const BACKEND_URL = "http://192.168.X.X:8000/upload-frame/";
+  const BACKEND_URL = "[http://192.168.0.18:8000/upload-frame/](http://192.168.0.18:8000/upload-frame/)";
 
   // Wait for permissions to load
   if (!permission) return <View />;
