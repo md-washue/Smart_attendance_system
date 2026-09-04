@@ -51,14 +51,18 @@ async def process_frame(file: UploadFile = File(...)):
     else:
         return {"status": "failed", "message": "Face not recognized."}
 
-@app.get("/get-attendance/")
+@app.get("/attendance")
 def get_attendance():
-    """Fetches the latest attendance logs to display on the mobile app."""
+    """Fetches the latest attendance logs with student names to display on the mobile app."""
     conn = sqlite3.connect('data/attendance_records.sqlite')
     cursor = conn.cursor()
-    # Join with students table once you populate names
-    cursor.execute("SELECT student_id, timestamp FROM attendance ORDER BY timestamp DESC LIMIT 20")
+    cursor.execute('''
+        SELECT students.name, attendance.timestamp 
+        FROM attendance 
+        JOIN students ON attendance.student_id = students.student_id
+        ORDER BY attendance.timestamp DESC
+    ''')
     records = cursor.fetchall()
     conn.close()
     
-    return {"logs": [{"student_id": r[0], "timestamp": r[1]} for r in records]}
+    return {"records": [{"name": row[0], "time": row[1]} for row in records]}
