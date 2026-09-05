@@ -11,7 +11,6 @@ const BACKEND_URL = "http://192.168.0.18:8000/upload-frame/";
 const DASHBOARD_URL = "http://192.168.0.18:8000/attendance";
 
 // --- LOGIN SCREEN ---
-// --- LOGIN SCREEN ---
 function LoginScreen({ navigation }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -75,7 +74,6 @@ function LoginScreen({ navigation }) {
   );
 }
 
-
 // --- DASHBOARD SCREEN ---
 function DashboardScreen({ navigation }) {
   const [attendanceRecords, setAttendanceRecords] = useState([]);
@@ -104,11 +102,25 @@ function DashboardScreen({ navigation }) {
         <View style={styles.headerArea}>
           <View>
             <Text style={styles.greetingText}>Good Morning,</Text>
-            <Text style={styles.nameText}>Mr. Washue 👋</Text>
+            <Text style={styles.nameText}>Dr. Shahrin👋</Text>
             <Text style={styles.dateText}>Saturday, September 5, 2026</Text>
           </View>
           <View style={styles.headerIcons}>
-            <Ionicons name="notifications-outline" size={24} color="#212529" style={{ marginRight: 15 }} />
+            <TouchableOpacity
+                onPress={() => Alert.alert(
+                  "Notifications",
+                  "You have no new notifications."
+                )}
+                style={{ marginRight: 15 }}
+              >
+                <Ionicons
+                  name="notifications-outline"
+                  size={26}
+                  color="#212529"
+                />
+              </TouchableOpacity>
+
+            
             {/* PROFILE PICTURE IMPLEMENTATION */}
             <Image 
               source={{ uri: 'https://ui-avatars.com/api/?name=Muhaiminur+Washue&background=212529&color=fff' }} 
@@ -147,8 +159,7 @@ function DashboardScreen({ navigation }) {
           <View style={styles.classHeader}>
             <View style={[styles.iconWrapper, { backgroundColor: '#0D6EFD' }]}><Ionicons name="git-network-outline" size={24} color="white" /></View>
             <View style={styles.classInfo}>
-              <Text style={styles.className}>Network Engineering</Text>
-              <Text style={styles.classCode}>NET201 - VLANs & Subnetting</Text>
+              <Text style={styles.className}>Artificial Intelligence</Text>
             </View>
           </View>
           
@@ -295,7 +306,6 @@ const styles = StyleSheet.create({
   classHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 15 },
   iconWrapper: { width: 45, height: 45, borderRadius: 10, justifyContent: 'center', alignItems: 'center', marginRight: 15 },
   className: { fontSize: 16, fontWeight: 'bold', color: '#212529' },
-  classCode: { fontSize: 13, color: '#6C757D', marginTop: 2 },
   classDetails: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 15 },
   detailText: { fontSize: 11, color: '#6C757D', fontWeight: '500' },
   progressRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 },
