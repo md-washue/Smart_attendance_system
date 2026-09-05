@@ -103,7 +103,15 @@ function DashboardScreen({ navigation }) {
           <View>
             <Text style={styles.greetingText}>Good Morning,</Text>
             <Text style={styles.nameText}>Dr. Shahrin👋</Text>
-            <Text style={styles.dateText}>Saturday, September 5, 2026</Text>
+            <Text style={styles.dateText}>
+              {new Date().toLocaleDateString('en-US', {
+                weekday: 'long',
+                month: 'long',
+                day: 'numeric',
+                year: 'numeric',
+              })}
+            </Text>
+
           </View>
           <View style={styles.headerIcons}>
             <TouchableOpacity
