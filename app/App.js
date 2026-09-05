@@ -11,26 +11,62 @@ const BACKEND_URL = "http://192.168.0.18:8000/upload-frame/";
 const DASHBOARD_URL = "http://192.168.0.18:8000/attendance";
 
 // --- LOGIN SCREEN ---
+// --- LOGIN SCREEN ---
 function LoginScreen({ navigation }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
+  const handleLogin = () => {
+    if (email === 'admin' && password === 'admin') {
+      navigation.navigate('Dashboard');
+    } else {
+      Alert.alert('Login Failed', 'Invalid login ID or password.');
+    }
+  };
+
   return (
     <SafeAreaView style={styles.loginContainer}>
       <View style={styles.loginForm}>
-        <MaterialCommunityIcons name="shield-lock-outline" size={60} color="#0D6EFD" style={{ alignSelf: 'center', marginBottom: 10 }} />
+        <MaterialCommunityIcons
+          name="shield-lock-outline"
+          size={60}
+          color="#0D6EFD"
+          style={{ alignSelf: 'center', marginBottom: 10 }}
+        />
+
         <Text style={styles.logoText}>ATTENDANCE PRO</Text>
         <Text style={styles.subLogoText}>Teacher Attendance System</Text>
-        
+
         <View style={styles.card}>
           <Text style={styles.welcomeTitle}>Welcome Back</Text>
-          <Text style={styles.welcomeSub}>Sign in to manage your classes and attendance.</Text>
-          
-          <TextInput style={styles.input} placeholder="Email / Teacher ID" value={email} onChangeText={setEmail} />
-          <TextInput style={styles.input} placeholder="Password" secureTextEntry value={password} onChangeText={setPassword} />
-          <TouchableOpacity><Text style={styles.forgotText}>Forgot password?</Text></TouchableOpacity>
-          
-          <TouchableOpacity style={styles.loginBtn} onPress={() => navigation.navigate('Dashboard')}>
+          <Text style={styles.welcomeSub}>
+            Sign in to manage your classes and attendance.
+          </Text>
+
+          <TextInput
+            style={styles.input}
+            placeholder="Login ID"
+            value={email}
+            onChangeText={setEmail}
+            autoCapitalize="none"
+          />
+
+          <TextInput
+            style={styles.input}
+            placeholder="Password"
+            secureTextEntry
+            value={password}
+            onChangeText={setPassword}
+          />
+
+          <TouchableOpacity>
+            <Text style={styles.forgotText}>Forgot password?</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.loginBtn}
+            onPress={handleLogin}
+          >
             <Text style={styles.loginBtnText}>LOGIN</Text>
           </TouchableOpacity>
         </View>
@@ -38,6 +74,7 @@ function LoginScreen({ navigation }) {
     </SafeAreaView>
   );
 }
+
 
 // --- DASHBOARD SCREEN ---
 function DashboardScreen({ navigation }) {
