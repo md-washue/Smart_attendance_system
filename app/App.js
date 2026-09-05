@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { StyleSheet, Text, View, TextInput, TouchableOpacity, SafeAreaView, ScrollView, Alert, Platform } from 'react-native';
+import { StyleSheet, Text, View, TextInput, TouchableOpacity, SafeAreaView, ScrollView, Alert, Platform, Image } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { CameraView, useCameraPermissions } from 'expo-camera';
@@ -18,7 +18,7 @@ function LoginScreen({ navigation }) {
   return (
     <SafeAreaView style={styles.loginContainer}>
       <View style={styles.loginForm}>
-        <MaterialCommunityIcons name="school" size={60} color="#0D6EFD" style={{ alignSelf: 'center', marginBottom: 10 }} />
+        <MaterialCommunityIcons name="shield-lock-outline" size={60} color="#0D6EFD" style={{ alignSelf: 'center', marginBottom: 10 }} />
         <Text style={styles.logoText}>ATTENDANCE PRO</Text>
         <Text style={styles.subLogoText}>Teacher Attendance System</Text>
         
@@ -42,6 +42,12 @@ function LoginScreen({ navigation }) {
 // --- DASHBOARD SCREEN ---
 function DashboardScreen({ navigation }) {
   const [attendanceRecords, setAttendanceRecords] = useState([]);
+  
+  // Practical Calculation Variables
+  const TOTAL_STUDENTS = 42;
+  const scannedCount = attendanceRecords.length;
+  const attendancePercent = scannedCount > 0 ? Math.round((scannedCount / TOTAL_STUDENTS) * 100) : 0;
+  const pendingCount = TOTAL_STUDENTS - scannedCount;
 
   useEffect(() => {
     fetch(DASHBOARD_URL)
@@ -49,6 +55,10 @@ function DashboardScreen({ navigation }) {
       .then(data => setAttendanceRecords(data.records))
       .catch(error => console.error("Network Error:", error));
   }, []);
+
+  const handleComingSoon = () => {
+    Alert.alert("Coming Soon", "This feature is currently under development.");
+  };
 
   return (
     <SafeAreaView style={styles.dashboardContainer}>
@@ -62,27 +72,31 @@ function DashboardScreen({ navigation }) {
           </View>
           <View style={styles.headerIcons}>
             <Ionicons name="notifications-outline" size={24} color="#212529" style={{ marginRight: 15 }} />
-            <View style={styles.profilePic}><Text style={{ color: 'white', fontWeight: 'bold' }}>W</Text></View>
+            {/* PROFILE PICTURE IMPLEMENTATION */}
+            <Image 
+              source={{ uri: 'https://ui-avatars.com/api/?name=Muhaiminur+Washue&background=212529&color=fff' }} 
+              style={styles.profilePic} 
+            />
           </View>
         </View>
 
-        {/* Stats Grid */}
+        {/* Dynamic Stats Grid */}
         <View style={styles.statsGrid}>
           <View style={styles.statBox}>
             <View style={styles.statTop}><Ionicons name="calendar" size={20} color="#0D6EFD" /><Text style={styles.statLabel}>Today's Classes</Text></View>
-            <Text style={styles.statValue}>4</Text>
+            <Text style={styles.statValue}>1</Text>
           </View>
           <View style={styles.statBox}>
             <View style={styles.statTop}><Ionicons name="people" size={20} color="#6610f2" /><Text style={styles.statLabel}>Total Scanned</Text></View>
-            <Text style={styles.statValue}>{attendanceRecords.length}</Text>
+            <Text style={styles.statValue}>{scannedCount}</Text>
           </View>
           <View style={styles.statBox}>
             <View style={styles.statTop}><Ionicons name="checkmark-circle" size={20} color="#198754" /><Text style={styles.statLabel}>Attendance</Text></View>
-            <Text style={[styles.statValue, { color: '#198754' }]}>91%</Text>
+            <Text style={[styles.statValue, { color: '#198754' }]}>{attendancePercent}%</Text>
           </View>
           <View style={styles.statBox}>
             <View style={styles.statTop}><Ionicons name="time" size={20} color="#fd7e14" /><Text style={styles.statLabel}>Pending</Text></View>
-            <Text style={[styles.statValue, { color: '#fd7e14' }]}>1</Text>
+            <Text style={[styles.statValue, { color: '#fd7e14' }]}>{pendingCount}</Text>
           </View>
         </View>
 
@@ -94,38 +108,53 @@ function DashboardScreen({ navigation }) {
 
         <View style={styles.classCard}>
           <View style={styles.classHeader}>
-            <View style={[styles.iconWrapper, { backgroundColor: '#0D6EFD' }]}><Ionicons name="code-slash" size={24} color="white" /></View>
+            <View style={[styles.iconWrapper, { backgroundColor: '#0D6EFD' }]}><Ionicons name="git-network-outline" size={24} color="white" /></View>
             <View style={styles.classInfo}>
-              <Text style={styles.className}>Computer Science</Text>
-              <Text style={styles.classCode}>CS101</Text>
+              <Text style={styles.className}>Network Engineering</Text>
+              <Text style={styles.classCode}>NET201 - VLANs & Subnetting</Text>
             </View>
           </View>
           
           <View style={styles.classDetails}>
             <Text style={styles.detailText}><Ionicons name="time-outline" size={12} /> 9:00 AM - 10:00 AM</Text>
             <Text style={styles.detailText}><Ionicons name="location-outline" size={12} /> Cyberjaya Lab 1</Text>
-            <Text style={styles.detailText}><Ionicons name="people-outline" size={12} /> 42 Students</Text>
+            <Text style={styles.detailText}><Ionicons name="people-outline" size={12} /> {TOTAL_STUDENTS} Students</Text>
           </View>
 
           <View style={styles.progressRow}>
-            <View style={styles.progressBarBg}><View style={[styles.progressBarFill, { width: '85%' }]} /></View>
-            <Text style={styles.progressText}>38 / 42 Present</Text>
+            <View style={styles.progressBarBg}><View style={[styles.progressBarFill, { width: `${attendancePercent}%` }]} /></View>
+            <Text style={styles.progressText}>{scannedCount} / {TOTAL_STUDENTS} Present</Text>
           </View>
           
           <TouchableOpacity style={styles.actionBtn} onPress={() => navigation.navigate('Scanner')}>
             <Text style={styles.actionBtnText}>TAKE ATTENDANCE</Text>
           </TouchableOpacity>
         </View>
-        <View style={{ height: 80 }} /> {/* Bottom padding for scroll */}
+        <View style={{ height: 80 }} />
       </ScrollView>
 
-      {/* Bottom Navigation */}
+      {/* Interactive Bottom Navigation */}
       <View style={styles.bottomNav}>
-        <View style={styles.navItem}><Ionicons name="home" size={24} color="#0D6EFD" /><Text style={[styles.navText, { color: '#0D6EFD' }]}>Home</Text></View>
-        <View style={styles.navItem}><Ionicons name="book-outline" size={24} color="#6C757D" /><Text style={styles.navText}>Classes</Text></View>
-        <View style={styles.navItem}><Ionicons name="checkmark-done-outline" size={24} color="#6C757D" /><Text style={styles.navText}>Attendance</Text></View>
-        <View style={styles.navItem}><Ionicons name="bar-chart-outline" size={24} color="#6C757D" /><Text style={styles.navText}>Reports</Text></View>
-        <View style={styles.navItem}><Ionicons name="person-outline" size={24} color="#6C757D" /><Text style={styles.navText}>Profile</Text></View>
+        <TouchableOpacity style={styles.navItem}>
+          <Ionicons name="home" size={24} color="#0D6EFD" />
+          <Text style={[styles.navText, { color: '#0D6EFD' }]}>Home</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.navItem} onPress={handleComingSoon}>
+          <Ionicons name="book-outline" size={24} color="#6C757D" />
+          <Text style={styles.navText}>Classes</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.navItem} onPress={handleComingSoon}>
+          <Ionicons name="checkmark-done-outline" size={24} color="#6C757D" />
+          <Text style={styles.navText}>Attendance</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.navItem} onPress={handleComingSoon}>
+          <Ionicons name="bar-chart-outline" size={24} color="#6C757D" />
+          <Text style={styles.navText}>Reports</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.navItem} onPress={handleComingSoon}>
+          <Ionicons name="person-outline" size={24} color="#6C757D" />
+          <Text style={styles.navText}>Profile</Text>
+        </TouchableOpacity>
       </View>
     </SafeAreaView>
   );
@@ -213,7 +242,7 @@ const styles = StyleSheet.create({
   nameText: { fontSize: 22, fontWeight: '900', color: '#212529', marginTop: 2 },
   dateText: { fontSize: 12, color: '#ADB5BD', marginTop: 4 },
   headerIcons: { flexDirection: 'row', alignItems: 'center' },
-  profilePic: { width: 35, height: 35, backgroundColor: '#212529', borderRadius: 17.5, justifyContent: 'center', alignItems: 'center' },
+  profilePic: { width: 40, height: 40, borderRadius: 20 },
   
   statsGrid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', paddingHorizontal: 20 },
   statBox: { width: '48%', backgroundColor: 'white', padding: 15, borderRadius: 15, marginBottom: 15, shadowColor: '#000', shadowOpacity: 0.03, shadowRadius: 5, elevation: 1 },
