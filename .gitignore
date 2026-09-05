@@ -1,3 +1,2 @@
 .venv-1
-data/raw_student_faces/
-*.sqlite
+data/raw_student_faces/*.sqlite
