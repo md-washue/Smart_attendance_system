@@ -30,7 +30,6 @@ function LoginScreen({ navigation }) {
 
   const handleLogin = () => {
     if (email === 'admin' && password === 'admin') {
-      // Pass the dynamic IP to the next screen
       navigation.navigate('Dashboard', { serverIP });
     } else {
       Alert.alert('Login Failed', 'Invalid login ID or password.');
@@ -47,7 +46,6 @@ function LoginScreen({ navigation }) {
         <View style={styles.card}>
           <Text style={styles.welcomeTitle}>Welcome Back</Text>
           <Text style={styles.welcomeSub}>Sign in to manage your classes and attendance.</Text>
-
           <TextInput style={styles.input} placeholder="Login ID" value={email} onChangeText={setEmail} autoCapitalize="none" />
           <TextInput style={styles.input} placeholder="Password" secureTextEntry value={password} onChangeText={setPassword} />
 
@@ -61,7 +59,6 @@ function LoginScreen({ navigation }) {
         </View>
       </View>
 
-      {/* Network Settings Modal */}
       <Modal visible={isSettingsVisible} transparent={true} animationType="fade">
         <View style={styles.modalOverlay}>
           <View style={styles.modalCard}>
@@ -96,7 +93,7 @@ function DashboardScreen({ route, navigation }) {
     useCallback(() => {
       fetch(DASHBOARD_URL)
         .then(response => response.json())
-        .then(data => setAttendanceRecords(data.records))
+        .then(data => setAttendanceRecords(data.records || []))
         .catch(error => console.error("Network Error:", error));
     }, [DASHBOARD_URL])
   );
@@ -166,6 +163,27 @@ function DashboardScreen({ route, navigation }) {
             <Text style={styles.actionBtnText}>TAKE ATTENDANCE</Text>
           </TouchableOpacity>
         </View>
+
+        {/* Recent Scans List injected directly below classCard */}
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Recent Scans</Text>
+        </View>
+        
+        {attendanceRecords.map((record, index) => (
+          <View key={index} style={{ 
+            backgroundColor: 'white', marginHorizontal: 20, padding: 15, borderRadius: 10, 
+            marginBottom: 10, flexDirection: 'row', justifyContent: 'space-between',
+            shadowColor: '#000', shadowOpacity: 0.03, shadowRadius: 5, elevation: 1
+          }}>
+            <Text style={{ fontWeight: 'bold', color: '#212529', fontSize: 14 }}>
+              <Ionicons name="person-circle-outline" size={16} color="#0D6EFD" /> {record.name}
+            </Text>
+            <Text style={{ color: '#198754', fontSize: 12, fontWeight: 'bold' }}>
+              {record.time.split(' ')[1]}
+            </Text>
+          </View>
+        ))}
+
         <View style={{ height: 80 }} />
       </ScrollView>
 
