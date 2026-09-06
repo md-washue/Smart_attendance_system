@@ -234,11 +234,10 @@ function ScannerScreen({ route, navigation }) {
         // Swapped Axios for native Fetch to bypass the Android upload bug
         const response = await fetch(BACKEND_URL, {
           method: 'POST',
-          body: formData,
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
+          body: formData
         });
+
+      
 
         const data = await response.json();
 
