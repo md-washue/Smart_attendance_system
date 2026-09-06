@@ -5,36 +5,57 @@ import os
 class SmartFaceDetector:
     def __init__(self):
         self.recognizer = cv2.face.LBPHFaceRecognizer_create()
-        self.face_cascade = cv2.CascadeClassifier('models/haarcascade_frontalface_default.xml')
+        # FIXED: Added '../' so it looks up one level from the src folder
+        cascade_path = '../models/haarcascade_frontalface_default.xml'
+        self.face_cascade = cv2.CascadeClassifier(cascade_path)
         
-    def train_model(self, data_dir='data/raw_student_faces/'):
+        if self.face_cascade.empty():
+            print(f"⚠️ Error: Could not load cascade classifier at {cascade_path}")
+        
+    def train_model(self, data_dir='../data/raw_student_faces/'):
         faces = []
         student_ids = []
         
+        print(f"Scanning directory: {data_dir}")
         for root, dirs, files in os.walk(data_dir):
             for file in files:
-                if file.endswith("jpg") or file.endswith("png"):
+                # FIXED: Added .jpeg to support your WhatsApp image downloads
+                if file.lower().endswith(('.jpg', '.png', '.jpeg')):
                     path = os.path.join(root, file)
                     
-                    # Read image in grayscale
                     img = cv2.imread(path, cv2.IMREAD_GRAYSCALE)
-                    # Extract student ID from the folder name (must be integers)
-                    student_id = int(os.path.basename(root))
+                    if img is None:
+                        continue
+                        
+                    try:
+                        # Ensures the folder name is an integer (1, 2, 3...)
+                        student_id = int(os.path.basename(root))
+                    except ValueError:
+                        continue
                     
-                    # Detect the face to ensure accurate training crops
                     detected_faces = self.face_cascade.detectMultiScale(img, scaleFactor=1.2, minNeighbors=5)
                     for (x, y, w, h) in detected_faces:
                         faces.append(img[y:y+h, x:x+w])
                         student_ids.append(student_id)
                         
-        # Train and save the model
+        if not faces:
+            print("❌ No faces found to train on.")
+            return
+
+        print(f"Training on {len(faces)} valid faces...")
         self.recognizer.train(faces, np.array(student_ids))
-        self.recognizer.write('models/face_encodings.yml')
-        print("Training complete. Model saved to models/face_encodings.yml")
+        
+        # FIXED: Added '../' to save in the correct directory
+        self.recognizer.write('../models/face_encodings.yml')
+        print("✅ Training complete. Model saved to ../models/face_encodings.yml")
 
     def recognize(self, image_array):
-        # Load the trained model
-        self.recognizer.read('models/face_encodings.yml')
+        try:
+            # FIXED: Added '../' for the read path
+            self.recognizer.read('../models/face_encodings.yml')
+        except Exception as e:
+            print(f"Error loading model: {e}")
+            return []
         
         gray = cv2.cvtColor(image_array, cv2.COLOR_BGR2GRAY)
         faces = self.face_cascade.detectMultiScale(gray, scaleFactor=1.2, minNeighbors=5)
@@ -43,6 +64,7 @@ class SmartFaceDetector:
         for (x, y, w, h) in faces:
             student_id, confidence = self.recognizer.predict(gray[y:y+h, x:x+w])
             
+            # For OpenCV LBPH, lower confidence is better (0 is a perfect match)
             if confidence < 75:
                 results.append({"student_id": student_id, "confidence": confidence})
             else:
