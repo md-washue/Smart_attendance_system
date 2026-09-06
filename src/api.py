@@ -3,31 +3,16 @@ import cv2
 import numpy as np
 import sqlite3
 import os
-import csv
-from face_detector import SmartFaceDetector 
+from face_detector import SmartFaceDetector
 
 app = FastAPI(title="Smart Attendance API")
 detector = SmartFaceDetector()
 
 DB_PATH = '../data/attendance_records.sqlite'
-CSV_PATH = '../data/students.csv'
-
-# Dictionary to hold the ID-to-Name mapping in memory
-student_mapping = {}
 
 @app.on_event("startup")
 def startup_event():
-    """Loads student data and ensures the database table exists on startup."""
-    # Load CSV mapping to translate integer folder IDs to real names
-    if os.path.exists(CSV_PATH):
-        with open(CSV_PATH, mode='r', encoding='utf-8') as file:
-            reader = csv.DictReader(file)
-            for row in reader:
-                student_mapping[int(row['folder_id'])] = row['name']
-    else:
-        print("⚠️ Warning: students.csv not found in data folder.")
-
-    # Setup Database Table automatically
+    """Ensures the database table exists on startup."""
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     cursor.execute('''
@@ -73,8 +58,14 @@ async def process_frame(file: UploadFile = File(...)):
         matched_id = best_match['student_id']
         log_attendance(matched_id)
         
-        # Lookup the real name from the CSV data
-        real_name = student_mapping.get(matched_id, f"Student ID {matched_id}")
+        # Lookup real name dynamically from SQLite
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        cursor.execute("SELECT name FROM students WHERE student_id = ?", (matched_id,))
+        student_record = cursor.fetchone()
+        conn.close()
+        
+        real_name = student_record[0] if student_record else f"Student ID {matched_id}"
         
         return {
             "status": "success", 
@@ -87,24 +78,19 @@ async def process_frame(file: UploadFile = File(...)):
 
 @app.get("/attendance")
 def get_attendance():
-    """Fetches the latest attendance logs and maps IDs to real names for the frontend."""
+    """Fetches the latest attendance logs with a JOIN query for the frontend."""
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     cursor.execute('''
-        SELECT student_id, timestamp 
+        SELECT students.name, attendance.timestamp 
         FROM attendance 
-        ORDER BY timestamp DESC
+        LEFT JOIN students ON attendance.student_id = students.student_id
+        ORDER BY attendance.timestamp DESC
         LIMIT 50
     ''')
     records = cursor.fetchall()
     conn.close()
     
-    # Use Python to map the integer ID back to the real string name using the CSV dictionary
-    formatted_records = []
-    for row in records:
-        student_id = row[0]
-        timestamp = row[1]
-        real_name = student_mapping.get(student_id, f"Unknown ID ({student_id})")
-        formatted_records.append({"name": real_name, "time": timestamp})
+    formatted_records = [{"name": row[0] or "Unknown", "time": row[1]} for row in records]
         
     return {"records": formatted_records}
