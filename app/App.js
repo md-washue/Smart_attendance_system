@@ -1,23 +1,37 @@
-import React, { useState, useRef, useCallback } from 'react';
-import { StyleSheet, Text, View, TextInput, TouchableOpacity, SafeAreaView, ScrollView, Alert, Platform, Image } from 'react-native';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
+import { StyleSheet, Text, View, TextInput, TouchableOpacity, SafeAreaView, ScrollView, Alert, Platform, Image, Modal } from 'react-native';
 import { NavigationContainer, useFocusEffect } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 
 const Stack = createNativeStackNavigator();
-const BACKEND_URL = "http://192.168.0.18:8000/upload-frame/";
-const DASHBOARD_URL = "http://192.168.0.18:8000/attendance";
 
 // --- LOGIN SCREEN ---
 function LoginScreen({ navigation }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [serverIP, setServerIP] = useState('192.168.0.18');
+  const [isSettingsVisible, setSettingsVisible] = useState(false);
+
+  useEffect(() => {
+    AsyncStorage.getItem('serverIP').then(ip => {
+      if (ip) setServerIP(ip);
+    });
+  }, []);
+
+  const handleSaveIP = async () => {
+    await AsyncStorage.setItem('serverIP', serverIP);
+    setSettingsVisible(false);
+    Alert.alert("Saved", "Network IP updated successfully.");
+  };
 
   const handleLogin = () => {
     if (email === 'admin' && password === 'admin') {
-      navigation.navigate('Dashboard');
+      // Pass the dynamic IP to the next screen
+      navigation.navigate('Dashboard', { serverIP });
     } else {
       Alert.alert('Login Failed', 'Invalid login ID or password.');
     }
@@ -26,59 +40,53 @@ function LoginScreen({ navigation }) {
   return (
     <SafeAreaView style={styles.loginContainer}>
       <View style={styles.loginForm}>
-        <MaterialCommunityIcons
-          name="shield-lock-outline"
-          size={60}
-          color="#0D6EFD"
-          style={{ alignSelf: 'center', marginBottom: 10 }}
-        />
-
-        <Text style={styles.logoText}>SMART ATTENDANCE SYSTEM</Text>
+        <MaterialCommunityIcons name="shield-lock-outline" size={60} color="#0D6EFD" style={{ alignSelf: 'center', marginBottom: 10 }} />
+        <Text style={styles.logoText}>SMART ATTENDANCE</Text>
         <Text style={styles.subLogoText}>Teacher Attendance System</Text>
 
         <View style={styles.card}>
           <Text style={styles.welcomeTitle}>Welcome Back</Text>
-          <Text style={styles.welcomeSub}>
-            Sign in to manage your classes and attendance.
-          </Text>
+          <Text style={styles.welcomeSub}>Sign in to manage your classes and attendance.</Text>
 
-          <TextInput
-            style={styles.input}
-            placeholder="Login ID"
-            value={email}
-            onChangeText={setEmail}
-            autoCapitalize="none"
-          />
+          <TextInput style={styles.input} placeholder="Login ID" value={email} onChangeText={setEmail} autoCapitalize="none" />
+          <TextInput style={styles.input} placeholder="Password" secureTextEntry value={password} onChangeText={setPassword} />
 
-          <TextInput
-            style={styles.input}
-            placeholder="Password"
-            secureTextEntry
-            value={password}
-            onChangeText={setPassword}
-          />
-
-          <TouchableOpacity>
-            <Text style={styles.forgotText}>Forgot password?</Text>
+          <TouchableOpacity onPress={() => setSettingsVisible(true)}>
+            <Text style={styles.forgotText}>⚙️ Network Settings</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity
-            style={styles.loginBtn}
-            onPress={handleLogin}
-          >
+          <TouchableOpacity style={styles.loginBtn} onPress={handleLogin}>
             <Text style={styles.loginBtnText}>LOGIN</Text>
           </TouchableOpacity>
         </View>
       </View>
+
+      {/* Network Settings Modal */}
+      <Modal visible={isSettingsVisible} transparent={true} animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalCard}>
+            <Text style={styles.modalTitle}>Backend Configuration</Text>
+            <Text style={styles.modalSub}>Enter your laptop's current IPv4 Address</Text>
+            <TextInput style={styles.input} value={serverIP} onChangeText={setServerIP} keyboardType="numeric" />
+            <TouchableOpacity style={styles.loginBtn} onPress={handleSaveIP}>
+              <Text style={styles.loginBtnText}>SAVE IP</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={{ marginTop: 15 }} onPress={() => setSettingsVisible(false)}>
+              <Text style={{ textAlign: 'center', color: '#6C757D' }}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
 
 // --- DASHBOARD SCREEN ---
-function DashboardScreen({ navigation }) {
+function DashboardScreen({ route, navigation }) {
+  const { serverIP } = route.params;
+  const DASHBOARD_URL = `http://${serverIP}:8000/attendance`;
   const [attendanceRecords, setAttendanceRecords] = useState([]);
   
-  // Practical Calculation Variables
   const TOTAL_STUDENTS = 5;
   const scannedCount = attendanceRecords.length;
   const attendancePercent = scannedCount > 0 ? Math.round((scannedCount / TOTAL_STUDENTS) * 100) : 0;
@@ -90,56 +98,30 @@ function DashboardScreen({ navigation }) {
         .then(response => response.json())
         .then(data => setAttendanceRecords(data.records))
         .catch(error => console.error("Network Error:", error));
-    }, [])
+    }, [DASHBOARD_URL])
   );
 
-  const handleComingSoon = () => {
-    Alert.alert("Coming Soon", "This feature is currently under development.");
-  };
+  const handleComingSoon = () => Alert.alert("Coming Soon", "This feature is currently under development.");
 
   return (
     <SafeAreaView style={styles.dashboardContainer}>
       <ScrollView showsVerticalScrollIndicator={false}>
-        {/* Header Section */}
         <View style={styles.headerArea}>
           <View>
             <Text style={styles.greetingText}>Good Morning,</Text>
             <Text style={styles.nameText}>Dr. Shahrin👋</Text>
             <Text style={styles.dateText}>
-              {new Date().toLocaleDateString('en-US', {
-                weekday: 'long',
-                month: 'long',
-                day: 'numeric',
-                year: 'numeric',
-              })}
+              {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
             </Text>
-
           </View>
           <View style={styles.headerIcons}>
-            <TouchableOpacity
-                onPress={() => Alert.alert(
-                  "Notifications",
-                  "You have no new notifications."
-                )}
-                style={{ marginRight: 15 }}
-              >
-                <Ionicons
-                  name="notifications-outline"
-                  size={26}
-                  color="#212529"
-                />
-              </TouchableOpacity>
-
-            
-            {/* PROFILE PICTURE IMPLEMENTATION */}
-            <Image 
-              source={{ uri: 'https://ui-avatars.com/api/?name=Muhaiminur+Washue&background=212529&color=fff' }} 
-              style={styles.profilePic} 
-            />
+            <TouchableOpacity onPress={() => Alert.alert("Notifications", "No new notifications.")} style={{ marginRight: 15 }}>
+              <Ionicons name="notifications-outline" size={26} color="#212529" />
+            </TouchableOpacity>
+            <Image source={{ uri: 'https://ui-avatars.com/api/?name=Muhaiminur+Washue&background=212529&color=fff' }} style={styles.profilePic} />
           </View>
         </View>
 
-        {/* Dynamic Stats Grid */}
         <View style={styles.statsGrid}>
           <View style={styles.statBox}>
             <View style={styles.statTop}><Ionicons name="calendar" size={20} color="#0D6EFD" /><Text style={styles.statLabel}>Today's Classes</Text></View>
@@ -159,7 +141,6 @@ function DashboardScreen({ navigation }) {
           </View>
         </View>
 
-        {/* Classes List */}
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Today's Classes</Text>
           <Text style={styles.viewAllText}>View all ➔</Text>
@@ -172,54 +153,38 @@ function DashboardScreen({ navigation }) {
               <Text style={styles.className}>Artificial Intelligence</Text>
             </View>
           </View>
-          
           <View style={styles.classDetails}>
             <Text style={styles.detailText}><Ionicons name="time-outline" size={12} /> 9:00 AM - 10:00 AM</Text>
             <Text style={styles.detailText}><Ionicons name="location-outline" size={12} /> Cyberjaya Lab 1</Text>
             <Text style={styles.detailText}><Ionicons name="people-outline" size={12} /> {TOTAL_STUDENTS} Students</Text>
           </View>
-
           <View style={styles.progressRow}>
             <View style={styles.progressBarBg}><View style={[styles.progressBarFill, { width: `${attendancePercent}%` }]} /></View>
             <Text style={styles.progressText}>{scannedCount} / {TOTAL_STUDENTS} Present</Text>
           </View>
-          
-          <TouchableOpacity style={styles.actionBtn} onPress={() => navigation.navigate('Scanner')}>
+          <TouchableOpacity style={styles.actionBtn} onPress={() => navigation.navigate('Scanner', { serverIP })}>
             <Text style={styles.actionBtnText}>TAKE ATTENDANCE</Text>
           </TouchableOpacity>
         </View>
         <View style={{ height: 80 }} />
       </ScrollView>
 
-      {/* Interactive Bottom Navigation */}
       <View style={styles.bottomNav}>
-        <TouchableOpacity style={styles.navItem}>
-          <Ionicons name="home" size={24} color="#0D6EFD" />
-          <Text style={[styles.navText, { color: '#0D6EFD' }]}>Home</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem} onPress={handleComingSoon}>
-          <Ionicons name="book-outline" size={24} color="#6C757D" />
-          <Text style={styles.navText}>Classes</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem} onPress={handleComingSoon}>
-          <Ionicons name="checkmark-done-outline" size={24} color="#6C757D" />
-          <Text style={styles.navText}>Attendance</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem} onPress={handleComingSoon}>
-          <Ionicons name="bar-chart-outline" size={24} color="#6C757D" />
-          <Text style={styles.navText}>Reports</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem} onPress={handleComingSoon}>
-          <Ionicons name="person-outline" size={24} color="#6C757D" />
-          <Text style={styles.navText}>Profile</Text>
-        </TouchableOpacity>
+        <TouchableOpacity style={styles.navItem}><Ionicons name="home" size={24} color="#0D6EFD" /><Text style={[styles.navText, { color: '#0D6EFD' }]}>Home</Text></TouchableOpacity>
+        <TouchableOpacity style={styles.navItem} onPress={handleComingSoon}><Ionicons name="book-outline" size={24} color="#6C757D" /><Text style={styles.navText}>Classes</Text></TouchableOpacity>
+        <TouchableOpacity style={styles.navItem} onPress={handleComingSoon}><Ionicons name="checkmark-done-outline" size={24} color="#6C757D" /><Text style={styles.navText}>Attendance</Text></TouchableOpacity>
+        <TouchableOpacity style={styles.navItem} onPress={handleComingSoon}><Ionicons name="bar-chart-outline" size={24} color="#6C757D" /><Text style={styles.navText}>Reports</Text></TouchableOpacity>
+        <TouchableOpacity style={styles.navItem} onPress={handleComingSoon}><Ionicons name="person-outline" size={24} color="#6C757D" /><Text style={styles.navText}>Profile</Text></TouchableOpacity>
       </View>
     </SafeAreaView>
   );
 }
 
 // --- SCANNER SCREEN ---
-function ScannerScreen({ navigation }) {
+function ScannerScreen({ route, navigation }) {
+  const { serverIP } = route.params;
+  const BACKEND_URL = `http://${serverIP}:8000/upload-frame/`;
+  
   const [permission, requestPermission] = useCameraPermissions();
   const cameraRef = useRef(null);
   const [status, setStatus] = useState("Ready to scan");
@@ -251,7 +216,7 @@ function ScannerScreen({ navigation }) {
           setStatus("Failed: Face not recognized");
           Alert.alert("Failed", response.data.message);
         }
-      } catch (error) { setStatus("Network error."); }
+      } catch (error) { setStatus("Network error. Check IP address."); }
     }
   };
 
@@ -290,9 +255,14 @@ const styles = StyleSheet.create({
   welcomeTitle: { fontSize: 22, fontWeight: 'bold', color: '#212529', marginBottom: 5 },
   welcomeSub: { fontSize: 14, color: '#6C757D', marginBottom: 25 },
   input: { borderWidth: 1, borderColor: '#E9ECEF', padding: 15, borderRadius: 10, marginBottom: 15, backgroundColor: '#FAFAFA' },
-  forgotText: { color: '#0D6EFD', textAlign: 'right', fontWeight: 'bold', marginBottom: 20 },
+  forgotText: { color: '#6C757D', textAlign: 'right', fontWeight: 'bold', marginBottom: 20 },
   loginBtn: { backgroundColor: '#0D6EFD', padding: 16, borderRadius: 10, alignItems: 'center' },
   loginBtnText: { color: 'white', fontWeight: 'bold', fontSize: 16 },
+  
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', padding: 20 },
+  modalCard: { backgroundColor: 'white', padding: 25, borderRadius: 15 },
+  modalTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: 10, textAlign: 'center' },
+  modalSub: { fontSize: 13, color: '#6C757D', marginBottom: 20, textAlign: 'center' },
   
   dashboardContainer: { flex: 1, backgroundColor: '#F4F7FA' },
   headerArea: { flexDirection: 'row', justifyContent: 'space-between', padding: 25, paddingTop: Platform.OS === 'android' ? 50 : 25 },
