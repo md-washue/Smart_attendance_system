@@ -1,13 +1,13 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import { StyleSheet, Text, View, TextInput, TouchableOpacity, SafeAreaView, ScrollView, Alert, Platform, Image } from 'react-native';
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, useFocusEffect } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import axios from 'axios';
 
 const Stack = createNativeStackNavigator();
-const BACKEND_URL = "http://192.168.0.18:8000/attendance/";
+const BACKEND_URL = "http://192.168.0.18:8000/upload-frame/";
 const DASHBOARD_URL = "http://192.168.0.18:8000/attendance";
 
 // --- LOGIN SCREEN ---
@@ -79,17 +79,19 @@ function DashboardScreen({ navigation }) {
   const [attendanceRecords, setAttendanceRecords] = useState([]);
   
   // Practical Calculation Variables
-  const TOTAL_STUDENTS = 42;
+  const TOTAL_STUDENTS = 5;
   const scannedCount = attendanceRecords.length;
   const attendancePercent = scannedCount > 0 ? Math.round((scannedCount / TOTAL_STUDENTS) * 100) : 0;
   const pendingCount = TOTAL_STUDENTS - scannedCount;
 
-  useEffect(() => {
-    fetch(DASHBOARD_URL)
-      .then(response => response.json())
-      .then(data => setAttendanceRecords(data.records))
-      .catch(error => console.error("Network Error:", error));
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      fetch(DASHBOARD_URL)
+        .then(response => response.json())
+        .then(data => setAttendanceRecords(data.records))
+        .catch(error => console.error("Network Error:", error));
+    }, [])
+  );
 
   const handleComingSoon = () => {
     Alert.alert("Coming Soon", "This feature is currently under development.");
