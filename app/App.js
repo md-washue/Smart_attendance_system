@@ -223,18 +223,36 @@ function ScannerScreen({ route, navigation }) {
       try {
         const photo = await cameraRef.current.takePictureAsync({ base64: false });
         setStatus("Sending to server...");
+        
         const formData = new FormData();
-        formData.append('file', { uri: photo.uri, name: 'student_scan.jpg', type: 'image/jpeg' });
-        const response = await axios.post(BACKEND_URL, formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+        formData.append('file', { 
+          uri: photo.uri, 
+          name: 'student_scan.jpg', 
+          type: 'image/jpeg' 
+        });
 
-        if (response.data.status === 'success') {
-          setStatus(`Success: ID ${response.data.student_id}`);
-          Alert.alert("Logged!", `Student ID: ${response.data.student_id}`);
+        // Swapped Axios for native Fetch to bypass the Android upload bug
+        const response = await fetch(BACKEND_URL, {
+          method: 'POST',
+          body: formData,
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        });
+
+        const data = await response.json();
+
+        if (data.status === 'success') {
+          setStatus(`Success: ID ${data.student_id}`);
+          Alert.alert("Logged!", `Student ID: ${data.student_id}`);
         } else {
           setStatus("Failed: Face not recognized");
-          Alert.alert("Failed", response.data.message);
+          Alert.alert("Failed", data.message);
         }
-      } catch (error) { setStatus("Network error. Check IP address."); }
+      } catch (error) { 
+        setStatus("Network error. Check IP address."); 
+        console.error(error);
+      }
     }
   };
 
