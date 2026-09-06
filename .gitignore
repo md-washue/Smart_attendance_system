@@ -2,3 +2,4 @@
 data/raw_student_faces/
 *.sqlite
 
+data/students.csv
