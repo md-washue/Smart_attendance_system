@@ -9,7 +9,8 @@
       "supportsTablet": true
     },
     "android": {
-      "package": "com.attendance.scanner"
+      "package": "com.attendance.scanner",
+      "usesCleartextTraffic": true
     }
   }
 }
