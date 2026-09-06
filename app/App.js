@@ -7,7 +7,7 @@ import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import axios from 'axios';
 
 const Stack = createNativeStackNavigator();
-const BACKEND_URL = "http://192.168.0.18:8000/upload-frame/";
+const BACKEND_URL = "http://192.168.0.18:8000/attendance/";
 const DASHBOARD_URL = "http://192.168.0.18:8000/attendance";
 
 // --- LOGIN SCREEN ---
@@ -33,7 +33,7 @@ function LoginScreen({ navigation }) {
           style={{ alignSelf: 'center', marginBottom: 10 }}
         />
 
-        <Text style={styles.logoText}>ATTENDANCE PRO</Text>
+        <Text style={styles.logoText}>SMART ATTENDANCE SYSTEM</Text>
         <Text style={styles.subLogoText}>Teacher Attendance System</Text>
 
         <View style={styles.card}>
