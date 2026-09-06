@@ -1,3 +1,4 @@
+import * as FileSystem from 'expo-file-system';
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { StyleSheet, Text, View, TextInput, TouchableOpacity, SafeAreaView, ScrollView, Alert, Platform, Image, Modal } from 'react-native';
 import { NavigationContainer, useFocusEffect } from '@react-navigation/native';
@@ -223,23 +224,15 @@ function ScannerScreen({ route, navigation }) {
       try {
         const photo = await cameraRef.current.takePictureAsync({ base64: false });
         setStatus("Sending to server...");
-        
-        const formData = new FormData();
-        formData.append('file', { 
-          uri: photo.uri, 
-          name: 'student_scan.jpg', 
-          type: 'image/jpeg' 
+
+        // Bypassing JS network bugs by using native Android upload
+        const response = await FileSystem.uploadAsync(BACKEND_URL, photo.uri, {
+          fieldName: 'file',
+          httpMethod: 'POST',
+          uploadType: FileSystem.FileSystemUploadType.MULTIPART,
         });
 
-        // Swapped Axios for native Fetch to bypass the Android upload bug
-        const response = await fetch(BACKEND_URL, {
-          method: 'POST',
-          body: formData
-        });
-
-      
-
-        const data = await response.json();
+        const data = JSON.parse(response.body);
 
         if (data.status === 'success') {
           setStatus(`Success: ID ${data.student_id}`);
@@ -249,11 +242,12 @@ function ScannerScreen({ route, navigation }) {
           Alert.alert("Failed", data.message);
         }
       } catch (error) { 
-        setStatus("Network error. Check IP address."); 
-        console.error(error);
+        setStatus("Network error"); 
+        Alert.alert("System Error", String(error)); 
       }
     }
   };
+
 
   return (
     <View style={styles.container}>
