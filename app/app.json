@@ -9,8 +9,17 @@
       "supportsTablet": true
     },
     "android": {
-      "package": "com.attendance.scanner",
-      "usesCleartextTraffic": true
-    }
+      "package": "com.attendance.scanner"
+    },
+    "plugins": [
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "usesCleartextTraffic": true
+          }
+        }
+      ]
+    ]
   }
 }
