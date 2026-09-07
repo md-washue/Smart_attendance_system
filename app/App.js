@@ -229,7 +229,7 @@ function ScannerScreen({ route, navigation }) {
         const response = await FileSystem.uploadAsync(BACKEND_URL, photo.uri, {
           fieldName: 'file',
           httpMethod: 'POST',
-          uploadType: FileSystem.FileSystemUploadType.MULTIPART,
+          uploadType: 1,
         });
 
         const data = JSON.parse(response.body);
@@ -247,7 +247,6 @@ function ScannerScreen({ route, navigation }) {
       }
     }
   };
-
 
   return (
     <View style={styles.container}>
