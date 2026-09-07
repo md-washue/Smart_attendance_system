@@ -1,6 +1,6 @@
 import * as FileSystem from 'expo-file-system';
 import React, { useState, useRef, useCallback, useEffect } from 'react';
-import { StyleSheet, Text, View, TextInput, TouchableOpacity, SafeAreaView, ScrollView, Alert, Platform, Image, Modal } from 'react-native';
+import { StyleSheet, Text, View, TextInput, TouchableOpacity, SafeAreaView, ScrollView, Alert, Platform, Image, Modal, FlatList } from 'react-native';
 import { NavigationContainer, useFocusEffect } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { CameraView, useCameraPermissions } from 'expo-camera';
@@ -84,6 +84,23 @@ function DashboardScreen({ route, navigation }) {
   const { serverIP } = route.params;
   const DASHBOARD_URL = `http://${serverIP}:8000/attendance`;
   const [attendanceRecords, setAttendanceRecords] = useState([]);
+
+  const [isRosterVisible, setRosterVisible] = useState(false);
+
+  const fullStudentList = [
+    { id: '1', matric: 'BIT2503-0887', name: 'Loghan A/L Kantheeban' },
+    { id: '2', matric: 'BIT2503-0729', name: 'KHALLEEFAH AMHIMMID ' },
+    { id: '3', matric: 'BIT2503-0879', name: 'Basheer Mohamed Basheer Bin Miskee' },
+    { id: '4', matric: 'BIT2503-1028', name: 'Md Muhaimenur Rhaman Washue' },
+    { id: '5', matric: 'BIT2503-1037', name: 'Islam Md Ariful ' }
+  ];
+
+  const rosterData = fullStudentList.map(student => {
+    const isPresent = attendanceRecords.some(record => record.name.includes(student.name.trim()));
+    return { ...student, status: isPresent ? 'Present' : 'Pending' };
+  });
+
+
   
   const TOTAL_STUDENTS = 5;
   const scannedCount = attendanceRecords.length;
@@ -125,18 +142,21 @@ function DashboardScreen({ route, navigation }) {
             <View style={styles.statTop}><Ionicons name="calendar" size={20} color="#0D6EFD" /><Text style={styles.statLabel}>Today's Classes</Text></View>
             <Text style={styles.statValue}>1</Text>
           </View>
-          <View style={styles.statBox}>
+          
+          <TouchableOpacity style={styles.statBox} onPress={() => setRosterVisible(true)}>
             <View style={styles.statTop}><Ionicons name="people" size={20} color="#6610f2" /><Text style={styles.statLabel}>Total Scanned</Text></View>
             <Text style={styles.statValue}>{scannedCount}</Text>
-          </View>
+          </TouchableOpacity>
           <View style={styles.statBox}>
             <View style={styles.statTop}><Ionicons name="checkmark-circle" size={20} color="#198754" /><Text style={styles.statLabel}>Attendance</Text></View>
             <Text style={[styles.statValue, { color: '#198754' }]}>{attendancePercent}%</Text>
           </View>
-          <View style={styles.statBox}>
+
+          <TouchableOpacity style={styles.statBox} onPress={() => setRosterVisible(true)}>
             <View style={styles.statTop}><Ionicons name="time" size={20} color="#fd7e14" /><Text style={styles.statLabel}>Pending</Text></View>
             <Text style={[styles.statValue, { color: '#fd7e14' }]}>{pendingCount}</Text>
-          </View>
+          </TouchableOpacity>
+          
         </View>
 
         <View style={styles.sectionHeader}>
@@ -187,6 +207,45 @@ function DashboardScreen({ route, navigation }) {
 
         <View style={{ height: 80 }} />
       </ScrollView>
+
+      <Modal visible={isRosterVisible} animationType="slide" presentationStyle="pageSheet">
+        <View style={{ flex: 1, backgroundColor: '#F4F7FA', padding: 20, paddingTop: 50 }}>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20 }}>
+            <Text style={{ fontSize: 22, fontWeight: 'bold' }}>Class Roster</Text>
+            <TouchableOpacity onPress={() => setRosterVisible(false)}>
+              <Ionicons name="close-circle" size={28} color="#6C757D" />
+            </TouchableOpacity>
+          </View>
+
+          <FlatList
+            data={rosterData}
+            keyExtractor={(item) => item.id}
+            renderItem={({ item }) => (
+              <View style={{ 
+                flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+                backgroundColor: 'white', padding: 15, borderRadius: 10, marginBottom: 10,
+                shadowColor: '#000', shadowOpacity: 0.05, elevation: 2 
+              }}>
+                <View>
+                  <Text style={{ fontWeight: 'bold', fontSize: 16 }}>{item.name}</Text>
+                  <Text style={{ color: '#6C757D', fontSize: 12 }}>{item.matric}</Text>
+                </View>
+                <View style={{ 
+                  backgroundColor: item.status === 'Present' ? '#D1E7DD' : '#FFF3CD', 
+                  paddingHorizontal: 12, paddingVertical: 6, borderRadius: 15 
+                }}>
+                  <Text style={{ 
+                    color: item.status === 'Present' ? '#0F5132' : '#856404', 
+                    fontWeight: 'bold', fontSize: 12 
+                  }}>
+                    {item.status}
+                  </Text>
+                </View>
+              </View>
+            )}
+          />
+        </View>
+      </Modal>
 
       <View style={styles.bottomNav}>
         <TouchableOpacity style={styles.navItem}><Ionicons name="home" size={24} color="#0D6EFD" /><Text style={[styles.navText, { color: '#0D6EFD' }]}>Home</Text></TouchableOpacity>
