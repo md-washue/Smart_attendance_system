@@ -6,6 +6,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Sharing from 'expo-sharing';
 import axios from 'axios';
 
 const Stack = createNativeStackNavigator();
@@ -94,6 +95,33 @@ function DashboardScreen({ route, navigation }) {
     { id: '4', matric: 'BIT2503-1028', name: 'Md Muhaimenur Rhaman Washue' },
     { id: '5', matric: 'BIT2503-1037', name: 'Islam Md Ariful ' }
   ];
+
+  const handleExportCSV = async () => {
+    // 1. Setup CSV Headers
+    let csvString = "Name,Matric Number,Status,Time Scanned\n";
+
+    // 2. Loop through roster to build rows
+    rosterData.forEach(student => {
+      // Find the scan time if they are present
+      const record = attendanceRecords.find(r => r.name.includes(student.name.trim()));
+      const scanTime = record ? record.time : "N/A";
+      
+      csvString += `${student.name},${student.matric},${student.status},${scanTime}\n`;
+    });
+
+    // 3. Save to device storage
+    const fileUri = FileSystem.documentDirectory + "Attendance_Report.csv";
+
+    try {
+      await FileSystem.writeAsStringAsync(fileUri, csvString, { 
+        encoding: FileSystem.EncodingType.UTF8 
+      });
+      // 4. Open the native Share sheet (WhatsApp, Email, etc.)
+      await Sharing.shareAsync(fileUri);
+    } catch (error) {
+      Alert.alert("Export Error", "Failed to generate report.");
+    }
+  };
 
   const rosterData = fullStudentList.map(student => {
     const isPresent = attendanceRecords.some(record => record.name.includes(student.name.trim()));
@@ -210,11 +238,19 @@ function DashboardScreen({ route, navigation }) {
 
       <Modal visible={isRosterVisible} animationType="slide" presentationStyle="pageSheet">
         <View style={{ flex: 1, backgroundColor: '#F4F7FA', padding: 20, paddingTop: 50 }}>
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20 }}>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20, alignItems: 'center' }}>
             <Text style={{ fontSize: 22, fontWeight: 'bold' }}>Class Roster</Text>
-            <TouchableOpacity onPress={() => setRosterVisible(false)}>
-              <Ionicons name="close-circle" size={28} color="#6C757D" />
-            </TouchableOpacity>
+            
+            <View style={{ flexDirection: 'row', gap: 15 }}>
+              <TouchableOpacity onPress={handleExportCSV} style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#E9ECEF', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 8 }}>
+                <Ionicons name="download-outline" size={18} color="#212529" />
+                <Text style={{ marginLeft: 5, fontWeight: 'bold', fontSize: 12 }}>CSV</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity onPress={() => setRosterVisible(false)}>
+                <Ionicons name="close-circle" size={28} color="#6C757D" />
+              </TouchableOpacity>
+            </View>
           </View>
 
           <FlatList
