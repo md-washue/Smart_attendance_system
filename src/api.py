@@ -27,15 +27,24 @@ def startup_event():
     conn.close()
 
 def log_attendance(student_id):
-    """Logs the attendance record securely with local time."""
+    """Logs attendance only once per student per day."""
     try:
         conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
-        
+
+        today = datetime.now().strftime("%Y-%m-%d")
+
+        # Check if student was already logged today
+        cursor.execute(
+            "SELECT id FROM attendance WHERE student_id = ? AND date(timestamp) = date(?)", 
+            (student_id, today)
+        )
+        if cursor.fetchone():
+            conn.close()
+            return True  # Already recorded today
+
         local_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        
         cursor.execute("INSERT INTO attendance (student_id, timestamp) VALUES (?, ?)", (student_id, local_time))
-        
         conn.commit()
         conn.close()
         return True
