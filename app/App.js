@@ -123,6 +123,31 @@ function DashboardScreen({ route, navigation }) {
     }
   };
 
+  const handleClearAttendance = () => {
+  Alert.alert(
+    "Clear Attendance",
+    "Are you sure you want to delete all scanned records for today?",
+    [
+      { text: "Cancel", style: "cancel" },
+      { 
+        text: "Clear", 
+        style: "destructive",
+        onPress: () => {
+          fetch(DASHBOARD_URL, { method: 'DELETE' })
+            .then(response => response.json())
+            .then(data => {
+              if(data.status === 'success') {
+                setAttendanceRecords([]); // Instantly resets the dashboard to 0
+                Alert.alert("Cleared", "All attendance records have been reset.");
+              }
+            })
+            .catch(error => console.error("Error clearing:", error));
+        }
+      }
+    ]
+  );
+};
+
   const rosterData = fullStudentList.map(student => {
     const isPresent = attendanceRecords.some(record => record.name.includes(student.name.trim()));
     return { ...student, status: isPresent ? 'Present' : 'Pending' };

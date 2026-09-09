@@ -99,3 +99,17 @@ def get_attendance():
     formatted_records = [{"name": row[0] or "Unknown", "time": row[1]} for row in records]
         
     return {"records": formatted_records}
+
+
+@app.delete("/attendance")
+def clear_attendance_data():
+    """Clears all records from the attendance table."""
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM attendance")
+        conn.commit()
+        conn.close()
+        return {"status": "success", "message": "Attendance cleared"}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
