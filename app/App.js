@@ -337,6 +337,75 @@ function ScannerScreen({ route, navigation }) {
   const cameraRef = useRef(null);
   const [status, setStatus] = useState("Ready to scan");
 
+  // New state tracking for the loop
+  const [isScanning, setIsScanning] = useState(false);
+  const isScanningRef = useRef(false);
+
+  // Play a short beep from a public URL
+  async function playSuccessSound() {
+    try {
+      const { sound } = await Audio.Sound.createAsync(
+        { uri: 'https://actions.google.com/sounds/v1/alarms/beep_short.ogg' }
+      );
+      await sound.playAsync();
+    } catch (error) {
+      console.log("Sound error", error);
+    }
+  }
+
+  const toggleAutoScan = () => {
+    const newState = !isScanning;
+    setIsScanning(newState);
+    isScanningRef.current = newState;
+    
+    if (newState) {
+      setStatus("Starting auto-scan...");
+      runScanLoop();
+    } else {
+      setStatus("Scanner paused.");
+    }
+  };
+
+  const runScanLoop = async () => {
+    if (!isScanningRef.current) return;
+
+    if (cameraRef.current) {
+      try {
+        // Lower quality for faster network processing
+        const photo = await cameraRef.current.takePictureAsync({ base64: false, quality: 0.3 });
+        
+        const response = await FileSystem.uploadAsync(BACKEND_URL, photo.uri, {
+          fieldName: 'file',
+          httpMethod: 'POST',
+          uploadType: 1,
+        });
+
+        const data = JSON.parse(response.body);
+
+        // Update text and play sound instead of blocking alerts
+        if (data.status === 'success') {
+          setStatus(`✅ Logged: ${data.student_name}`);
+          await playSuccessSound();
+          
+          // Pause for 3 seconds after success so the student can walk by
+          setTimeout(() => {
+              if (isScanningRef.current) runScanLoop();
+          }, 3000);
+          return; 
+        } else {
+          setStatus("👀 Scanning for faces...");
+        }
+      } catch (error) { 
+        setStatus("Network error, retrying..."); 
+      }
+    }
+
+    // If no face found or error, try again in 1.5 seconds
+    if (isScanningRef.current) {
+      setTimeout(runScanLoop, 1500);
+    }
+  };
+
   if (!permission) return <View />;
   if (!permission.granted) {
     return (
@@ -347,42 +416,19 @@ function ScannerScreen({ route, navigation }) {
     );
   }
 
-  const takePictureAndSend = async () => {
-    if (cameraRef.current) {
-      setStatus("Capturing...");
-      try {
-        const photo = await cameraRef.current.takePictureAsync({ base64: false });
-        setStatus("Sending to server...");
-
-        // Bypassing JS network bugs by using native Android upload
-        const response = await FileSystem.uploadAsync(BACKEND_URL, photo.uri, {
-          fieldName: 'file',
-          httpMethod: 'POST',
-          uploadType: 1,
-        });
-
-        const data = JSON.parse(response.body);
-
-        if (data.status === 'success') {
-          setStatus(`Success: ID ${data.student_id}`);
-          Alert.alert("Logged!", `Student ID: ${data.student_id}`);
-        } else {
-          setStatus("Failed: Face not recognized");
-          Alert.alert("Failed", data.message);
-        }
-      } catch (error) { 
-        setStatus("Network error"); 
-        Alert.alert("System Error", String(error)); 
-      }
-    }
-  };
-
   return (
     <View style={styles.container}>
       <CameraView style={styles.camera} facing="back" ref={cameraRef} />
       <View style={styles.overlay}>
         <Text style={styles.statusText}>{status}</Text>
-        <TouchableOpacity style={styles.scanBtn} onPress={takePictureAndSend}><Text style={styles.scanBtnText}>SCAN FACE</Text></TouchableOpacity>
+        <TouchableOpacity 
+          style={[styles.scanBtn, { backgroundColor: isScanning ? '#DC3545' : '#007BFF' }]} 
+          onPress={toggleAutoScan}
+        >
+          <Text style={styles.scanBtnText}>
+            {isScanning ? "STOP AUTO-SCAN" : "START AUTO-SCAN"}
+          </Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
