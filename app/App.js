@@ -403,18 +403,20 @@ function ScannerScreen({ route, navigation }) {
 
   return (
     <View style={styles.container}>
-      <CameraView style={styles.camera} facing="back" ref={cameraRef} />
-      <View style={styles.overlay}>
-        <Text style={styles.statusText}>{status}</Text>
-        <TouchableOpacity 
-          style={[styles.scanBtn, { backgroundColor: isScanning ? '#DC3545' : '#007BFF' }]} 
-          onPress={toggleAutoScan}
-        >
-          <Text style={styles.scanBtnText}>
-            {isScanning ? "STOP AUTO-SCAN" : "START AUTO-SCAN"}
-          </Text>
-        </TouchableOpacity>
-      </View>
+      {/* Change style to flex: 1 and wrap the overlay inside the CameraView */}
+      <CameraView style={{ flex: 1 }} facing="back" ref={cameraRef}>
+        <View style={styles.overlay}>
+          <Text style={styles.statusText}>{status}</Text>
+          <TouchableOpacity 
+            style={[styles.scanBtn, { backgroundColor: isScanning ? '#DC3545' : '#007BFF' }]} 
+            onPress={toggleAutoScan}
+          >
+            <Text style={styles.scanBtnText}>
+              {isScanning ? "STOP AUTO-SCAN" : "START AUTO-SCAN"}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </CameraView>
     </View>
   );
 }
