@@ -3,6 +3,7 @@
     "name": "app",
     "slug": "app",
     "version": "1.0.0",
+    "jsEngine": "jsc",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
     "ios": {
@@ -20,7 +21,8 @@
           }
         }
       ],
-      "expo-sharing"
+      "expo-sharing",
+      "expo-camera"
     ]
   }
 }
