@@ -1,4 +1,4 @@
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { StyleSheet, Text, View, TextInput, TouchableOpacity, SafeAreaView, ScrollView, Alert, Platform, Image, Modal, FlatList } from 'react-native';
 import { NavigationContainer, useFocusEffect } from '@react-navigation/native';
