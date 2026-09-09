@@ -358,8 +358,7 @@ function ScannerScreen({ route, navigation }) {
 
     if (cameraRef.current) {
       try {
-        // Lower quality for faster network processing
-        const photo = await cameraRef.current.takePictureAsync({ base64: false, quality: 0.3 });
+        const photo = await cameraRef.current.takePictureAsync({ base64: false, quality: 0.5 });
         
         const response = await FileSystem.uploadAsync(BACKEND_URL, photo.uri, {
           fieldName: 'file',

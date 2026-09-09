@@ -65,7 +65,7 @@ class SmartFaceDetector:
             student_id, confidence = self.recognizer.predict(gray[y:y+h, x:x+w])
             
             # For OpenCV LBPH, lower confidence is better (0 is a perfect match)
-            if confidence < 75:
+            if confidence < 85:
                 results.append({"student_id": student_id, "confidence": confidence})
             else:
                 results.append({"student_id": "Unknown", "confidence": confidence})
