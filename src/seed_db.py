@@ -1,7 +1,7 @@
 import sqlite3
 
 def seed_database():
-    conn = sqlite3.connect('data/attendance_records.sqlite')
+    conn = sqlite3.connect('../data/attendance_records.sqlite')
     cursor = conn.cursor()
     
     # Clear existing data to prevent old mismatch errors
