@@ -8,6 +8,8 @@ import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Sharing from 'expo-sharing';
 import axios from 'axios';
+import { Audio } from 'expo-av';
+
 
 const Stack = createNativeStackNavigator();
 
