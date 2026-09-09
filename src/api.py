@@ -2,6 +2,7 @@ from fastapi import FastAPI, UploadFile, File
 import cv2
 import numpy as np
 import sqlite3
+from datetime import datetime
 import os
 from face_detector import SmartFaceDetector
 
@@ -26,18 +27,22 @@ def startup_event():
     conn.close()
 
 def log_attendance(student_id):
-    """Logs the attendance record securely into SQLite using parameterized queries."""
+    """Logs the attendance record securely with local time."""
     try:
         conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
-        cursor.execute("INSERT INTO attendance (student_id) VALUES (?)", (student_id,))
+        
+        local_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        
+        cursor.execute("INSERT INTO attendance (student_id, timestamp) VALUES (?, ?)", (student_id, local_time))
+        
         conn.commit()
         conn.close()
         return True
     except Exception as e:
         print(f"Database error: {e}")
         return False
-
+    
 @app.post("/upload-frame/")
 async def process_frame(file: UploadFile = File(...)):
     contents = await file.read()
