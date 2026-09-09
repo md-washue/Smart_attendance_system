@@ -8,7 +8,6 @@ import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Sharing from 'expo-sharing';
 import axios from 'axios';
-import { Audio } from 'expo-av';
 
 
 const Stack = createNativeStackNavigator();
@@ -341,18 +340,6 @@ function ScannerScreen({ route, navigation }) {
   const [isScanning, setIsScanning] = useState(false);
   const isScanningRef = useRef(false);
 
-  // Play a short beep from a public URL
-  async function playSuccessSound() {
-    try {
-      const { sound } = await Audio.Sound.createAsync(
-        { uri: 'https://actions.google.com/sounds/v1/alarms/beep_short.ogg' }
-      );
-      await sound.playAsync();
-    } catch (error) {
-      console.log("Sound error", error);
-    }
-  }
-
   const toggleAutoScan = () => {
     const newState = !isScanning;
     setIsScanning(newState);
@@ -382,10 +369,9 @@ function ScannerScreen({ route, navigation }) {
 
         const data = JSON.parse(response.body);
 
-        // Update text and play sound instead of blocking alerts
+        // Update text instead of blocking alerts
         if (data.status === 'success') {
           setStatus(`✅ Logged: ${data.student_name}`);
-          await playSuccessSound();
           
           // Pause for 3 seconds after success so the student can walk by
           setTimeout(() => {
