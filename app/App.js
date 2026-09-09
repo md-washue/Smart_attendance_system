@@ -89,12 +89,12 @@ function DashboardScreen({ route, navigation }) {
   const [isRosterVisible, setRosterVisible] = useState(false);
 
   const fullStudentList = [
-    { id: '1', matric: 'BIT2503-0887', name: 'Loghan A/L Kantheeban' },
-    { id: '2', matric: 'BIT2503-0729', name: 'KHALLEEFAH AMHIMMID ' },
-    { id: '3', matric: 'BIT2503-0879', name: 'Basheer Mohamed Basheer Bin Miskee' },
-    { id: '4', matric: 'BIT2503-1028', name: 'Md Muhaimenur Rhaman Washue' },
-    { id: '5', matric: 'BIT2503-1037', name: 'Islam Md Ariful ' }
-  ];
+  { id: '1', matric: 'BIT2503-0887', name: 'Loghan A/L Kantheeban' },
+  { id: '2', matric: 'BIT2503-0729', name: 'KHALLEEFAH AMHIMMID' },
+  { id: '3', matric: 'BIT2503-0879', name: 'Basheer Mohamed Basheer Bin Miskee' },
+  { id: '4', matric: 'BIT2503-1028', name: 'Md Muhaimenur Rhaman Washue' },
+  { id: '5', matric: 'BIT2503-1037', name: 'Islam Md Ariful' }
+];
 
   const handleExportCSV = async () => {
     // 1. Setup CSV Headers
@@ -182,12 +182,15 @@ function DashboardScreen({ route, navigation }) {
               {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
             </Text>
           </View>
-          <View style={styles.headerIcons}>
-            <TouchableOpacity onPress={() => Alert.alert("Notifications", "No new notifications.")} style={{ marginRight: 15 }}>
-              <Ionicons name="notifications-outline" size={26} color="#212529" />
-            </TouchableOpacity>
-            <Image source={{ uri: 'https://ui-avatars.com/api/?name=Muhaiminur+Washue&background=212529&color=fff' }} style={styles.profilePic} />
-          </View>
+        <View style={styles.headerIcons}>
+          <TouchableOpacity onPress={handleClearAttendance} style={{ marginRight: 15 }}>
+            <Ionicons name="trash-outline" size={26} color="#DC3545" />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => Alert.alert("Notifications", "No new notifications.")} style={{ marginRight: 15 }}>
+            <Ionicons name="notifications-outline" size={26} color="#212529" />
+          </TouchableOpacity>
+          <Image source={{ uri: 'https://ui-avatars.com/api/?name=Muhaiminur+Washue&background=212529&color=fff' }} style={styles.profilePic} />
+        </View>
         </View>
 
         <View style={styles.statsGrid}>
@@ -200,10 +203,11 @@ function DashboardScreen({ route, navigation }) {
             <View style={styles.statTop}><Ionicons name="people" size={20} color="#6610f2" /><Text style={styles.statLabel}>Total Scanned</Text></View>
             <Text style={styles.statValue}>{scannedCount}</Text>
           </TouchableOpacity>
-          <View style={styles.statBox}>
+
+          <TouchableOpacity style={styles.statBox} onPress={() => setRosterVisible(true)}>
             <View style={styles.statTop}><Ionicons name="checkmark-circle" size={20} color="#198754" /><Text style={styles.statLabel}>Attendance</Text></View>
             <Text style={[styles.statValue, { color: '#198754' }]}>{attendancePercent}%</Text>
-          </View>
+          </TouchableOpacity>
 
           <TouchableOpacity style={styles.statBox} onPress={() => setRosterVisible(true)}>
             <View style={styles.statTop}><Ionicons name="time" size={20} color="#fd7e14" /><Text style={styles.statLabel}>Pending</Text></View>
@@ -311,7 +315,10 @@ function DashboardScreen({ route, navigation }) {
       <View style={styles.bottomNav}>
         <TouchableOpacity style={styles.navItem}><Ionicons name="home" size={24} color="#0D6EFD" /><Text style={[styles.navText, { color: '#0D6EFD' }]}>Home</Text></TouchableOpacity>
         <TouchableOpacity style={styles.navItem} onPress={handleComingSoon}><Ionicons name="book-outline" size={24} color="#6C757D" /><Text style={styles.navText}>Classes</Text></TouchableOpacity>
-        <TouchableOpacity style={styles.navItem} onPress={handleComingSoon}><Ionicons name="checkmark-done-outline" size={24} color="#6C757D" /><Text style={styles.navText}>Attendance</Text></TouchableOpacity>
+        <TouchableOpacity style={styles.navItem} onPress={() => setRosterVisible(true)}>
+          <Ionicons name="checkmark-done-outline" size={24} color="#6C757D" />
+          <Text style={styles.navText}>Attendance</Text>
+        </TouchableOpacity>
         <TouchableOpacity style={styles.navItem} onPress={handleComingSoon}><Ionicons name="bar-chart-outline" size={24} color="#6C757D" /><Text style={styles.navText}>Reports</Text></TouchableOpacity>
         <TouchableOpacity style={styles.navItem} onPress={handleComingSoon}><Ionicons name="person-outline" size={24} color="#6C757D" /><Text style={styles.navText}>Profile</Text></TouchableOpacity>
       </View>
