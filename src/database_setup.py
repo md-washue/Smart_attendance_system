@@ -3,8 +3,8 @@ import os
 
 def create_database():
     os.makedirs('data', exist_ok=True)
+    conn = sqlite3.connect('../data/attendance_records.sqlite')
     
-    conn = sqlite3.connect('data/attendance_records.sqlite')
     cursor = conn.cursor()
     
     # Create Students table
