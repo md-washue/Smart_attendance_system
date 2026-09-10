@@ -16,7 +16,8 @@ const Stack = createNativeStackNavigator();
 function LoginScreen({ navigation }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [serverIP, setServerIP] = useState('192.168.0.18');
+  const [serverIP, setServerIP] = useState('192.168.141.1');
+
   const [isSettingsVisible, setSettingsVisible] = useState(false);
 
   useEffect(() => {
